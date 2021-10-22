@@ -1,8 +1,6 @@
 'use strict';
 
 const action = document.querySelector('.action');
-const templateImageCard = document.querySelector('#image');
-const templateImagePopup = document.querySelector('#popup-image');
 const container = document.querySelector('.images');
 
 const popup = document.querySelector('.popup');
@@ -62,7 +60,7 @@ const showLoader = function () {
 const hideLoader = function () {
     loaderTimeout = setTimeout(function () {
         loader.style.visibility = 'hidden';
-        loaderTimeout.clearTimeout();
+        clearTimeout(loaderTimeout);
     }, 700);
 }
 
@@ -87,28 +85,28 @@ const cropImage = function (src, size = 2) {
  * @param {array} list
  */
 const renderPictures = function (list) {
+    hideLoader();
     if (!list.length) {
         throw Error(`Pictures not defined. The list length: ${list.length}`);
     }
 
-    const clone = templateImageCard.content.cloneNode(true);
     const fragment = document.createDocumentFragment();
 
     list.forEach(function (element) {
+        const clone = image.content.cloneNode(true);
         const link = clone.querySelector('a');
 
         link.href = element.url;
         link.dataset.id = element.id;
 
-        const image = clone.querySelector('img');
-        image.src = cropImage(element.download_url, 5);
-        image.alt = element.author;
-        image.classList.add('preview');
+        const img = clone.querySelector('img');
+        img.src = cropImage(element.download_url, 5);
+        img.alt = element.author;
+        img.classList.add('preview');
         fragment.appendChild(clone)
     });
 
     container.appendChild(fragment);
-    hideLoader();
 }
 
 /**
@@ -117,7 +115,8 @@ const renderPictures = function (list) {
  * @param {object} picture
  */
 const renderPopupPicture = function (picture) {
-    const clone = templateImagePopup.content.cloneNode(true);
+    hideLoader();
+    const clone = popupImage.content.cloneNode(true);
     const img = clone.querySelector('img');
     const link = clone.querySelector('a');
     const author = clone.querySelector('.author');
@@ -130,7 +129,6 @@ const renderPopupPicture = function (picture) {
 
     popupContainer.innerHTML = '';
     popupContainer.appendChild(clone)
-    hideLoader();
     togglePopup();
 }
 
@@ -152,7 +150,7 @@ const togglePopup = function () {
 const actionHandler = function (evt) {
     evt.preventDefault();
     const nextPage = evt.currentTarget.dataset.page;
-    evt.currentTarget.dataset.page = nextPage + 1;
+    evt.currentTarget.dataset.page = +nextPage + 1;
 
     if (nextPage > MAX_PAGE_IAMGES) {
         console.warn(`WARN: You are trying to call a page that exceeds ${MAX_PAGE_IAMGES}`);
@@ -172,7 +170,7 @@ const imageHandler = function (evt) {
     evt.preventDefault();
 
     if (evt.target.closest('a')) {
-        getPictureInfo(evt.target.dataset.id);
+        getPictureInfo(evt.target.closest('a').dataset.id);
     }
 }
 

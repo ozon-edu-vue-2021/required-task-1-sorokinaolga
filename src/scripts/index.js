@@ -1,6 +1,8 @@
 'use strict';
 
-const action = document.querySelector('.action');
+const action = document.querySelector('.main .action');
+const templateImageCard = document.querySelector('#image');
+const templateImagePopup = document.querySelector('#popup-image');
 const container = document.querySelector('.images');
 
 const popup = document.querySelector('.popup');
@@ -31,6 +33,7 @@ const getPictures = function (page = 1, limit = 10) {
     fetch(`https://picsum.photos/v2/list?page=${page};limit=${limit}`)
         .then(function (response) {return response.json()})
         .then(function (result) {renderPictures(result)})
+        .finally(hideLoader())
 }
 
 /**
@@ -43,6 +46,7 @@ const getPictureInfo = function (id = 0) {
     fetch(`https://picsum.photos/id/${id}/info`)
         .then(function (response) {return response.json()})
         .then(function (result) {renderPopupPicture(result)})
+        .finally(hideLoader())
 }
 
 /**
@@ -85,7 +89,6 @@ const cropImage = function (src, size = 2) {
  * @param {array} list
  */
 const renderPictures = function (list) {
-    hideLoader();
     if (!list.length) {
         throw Error(`Pictures not defined. The list length: ${list.length}`);
     }
@@ -93,16 +96,16 @@ const renderPictures = function (list) {
     const fragment = document.createDocumentFragment();
 
     list.forEach(function (element) {
-        const clone = image.content.cloneNode(true);
+        const clone = templateImageCard.content.cloneNode(true);
         const link = clone.querySelector('a');
 
         link.href = element.url;
         link.dataset.id = element.id;
 
-        const img = clone.querySelector('img');
-        img.src = cropImage(element.download_url, 5);
-        img.alt = element.author;
-        img.classList.add('preview');
+        const image = clone.querySelector('img');
+        image.src = cropImage(element.download_url, 5);
+        image.alt = element.author;
+        image.classList.add('preview');
         fragment.appendChild(clone)
     });
 
@@ -115,8 +118,7 @@ const renderPictures = function (list) {
  * @param {object} picture
  */
 const renderPopupPicture = function (picture) {
-    hideLoader();
-    const clone = popupImage.content.cloneNode(true);
+    const clone = templateImagePopup.content.cloneNode(true);
     const img = clone.querySelector('img');
     const link = clone.querySelector('a');
     const author = clone.querySelector('.author');
@@ -150,7 +152,7 @@ const togglePopup = function () {
 const actionHandler = function (evt) {
     evt.preventDefault();
     const nextPage = evt.currentTarget.dataset.page;
-    evt.currentTarget.dataset.page = +nextPage + 1;
+    evt.currentTarget.dataset.page = Number(nextPage) + 1;
 
     if (nextPage > MAX_PAGE_IAMGES) {
         console.warn(`WARN: You are trying to call a page that exceeds ${MAX_PAGE_IAMGES}`);
@@ -168,9 +170,10 @@ const actionHandler = function (evt) {
  */
 const imageHandler = function (evt) {
     evt.preventDefault();
+    const link = evt.target.closest('a');
 
-    if (evt.target.closest('a')) {
-        getPictureInfo(evt.target.closest('a').dataset.id);
+    if (link) {
+        getPictureInfo(link.dataset.id);
     }
 }
 

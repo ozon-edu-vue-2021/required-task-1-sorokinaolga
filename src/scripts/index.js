@@ -1,6 +1,6 @@
 'use strict';
 
-const action = document.querySelector('.action');
+const action = document.querySelector('.main .action');
 const templateImageCard = document.querySelector('#image');
 const templateImagePopup = document.querySelector('#popup-image');
 const container = document.querySelector('.images');
@@ -33,6 +33,7 @@ const getPictures = function (page = 1, limit = 10) {
     fetch(`https://picsum.photos/v2/list?page=${page};limit=${limit}`)
         .then(function (response) {return response.json()})
         .then(function (result) {renderPictures(result)})
+        .finally(hideLoader())
 }
 
 /**
@@ -45,6 +46,7 @@ const getPictureInfo = function (id = 0) {
     fetch(`https://picsum.photos/id/${id}/info`)
         .then(function (response) {return response.json()})
         .then(function (result) {renderPopupPicture(result)})
+        .finally(hideLoader())
 }
 
 /**
@@ -62,7 +64,7 @@ const showLoader = function () {
 const hideLoader = function () {
     loaderTimeout = setTimeout(function () {
         loader.style.visibility = 'hidden';
-        loaderTimeout.clearTimeout();
+        clearTimeout(loaderTimeout);
     }, 700);
 }
 
@@ -91,10 +93,10 @@ const renderPictures = function (list) {
         throw Error(`Pictures not defined. The list length: ${list.length}`);
     }
 
-    const clone = templateImageCard.content.cloneNode(true);
     const fragment = document.createDocumentFragment();
 
     list.forEach(function (element) {
+        const clone = templateImageCard.content.cloneNode(true);
         const link = clone.querySelector('a');
 
         link.href = element.url;
@@ -108,7 +110,6 @@ const renderPictures = function (list) {
     });
 
     container.appendChild(fragment);
-    hideLoader();
 }
 
 /**
@@ -130,7 +131,6 @@ const renderPopupPicture = function (picture) {
 
     popupContainer.innerHTML = '';
     popupContainer.appendChild(clone)
-    hideLoader();
     togglePopup();
 }
 
@@ -152,7 +152,7 @@ const togglePopup = function () {
 const actionHandler = function (evt) {
     evt.preventDefault();
     const nextPage = evt.currentTarget.dataset.page;
-    evt.currentTarget.dataset.page = nextPage + 1;
+    evt.currentTarget.dataset.page = Number(nextPage) + 1;
 
     if (nextPage > MAX_PAGE_IAMGES) {
         console.warn(`WARN: You are trying to call a page that exceeds ${MAX_PAGE_IAMGES}`);
@@ -170,9 +170,10 @@ const actionHandler = function (evt) {
  */
 const imageHandler = function (evt) {
     evt.preventDefault();
+    const link = evt.target.closest('a');
 
-    if (evt.target.closest('a')) {
-        getPictureInfo(evt.target.dataset.id);
+    if (link) {
+        getPictureInfo(link.dataset.id);
     }
 }
 
